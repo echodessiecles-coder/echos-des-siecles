@@ -1,4 +1,5 @@
 <meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>Échos des siècles — Maison</title>
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Familjen+Grotesk:wght@400;500;600;700&family=Instrument+Serif:ital@0;1&family=IBM+Plex+Mono:wght@400;500&display=swap">
@@ -212,7 +213,7 @@ body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset
 
 /* overlays */
 .scrim{position:fixed;inset:0;z-index:70;background:rgba(18,18,18,.35);backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px);opacity:0;pointer-events:none;transition:opacity .35s}
-body.cart .scrim,body.qv .scrim,body.pal .scrim{opacity:1;pointer-events:auto}
+body.cart .scrim,body.qv .scrim,body.palo .scrim{opacity:1;pointer-events:auto}
 .drawer{position:fixed;top:8px;right:8px;bottom:8px;z-index:80;width:min(440px,calc(100vw - 16px));background:var(--bg);border-radius:20px;box-shadow:0 30px 80px rgba(0,0,0,.25);transform:translateX(calc(100% + 20px));visibility:hidden;transition:transform .6s var(--ease),visibility 0s .6s;display:flex;flex-direction:column;padding:calc(18px + env(safe-area-inset-top,0px)) 22px calc(18px + env(safe-area-inset-bottom,0px))}
 body.cart .drawer{transform:none;visibility:visible;transition:transform .6s var(--ease)}
 .drawer header{display:flex;justify-content:space-between;align-items:center;padding-bottom:14px;border-bottom:1px solid var(--line)}
@@ -261,7 +262,7 @@ body.qv .sheet{opacity:1;pointer-events:auto;transform:translate(-50%,-50%)}
 .sheet .tags{display:flex;gap:6px;flex-wrap:wrap}
 .sheet .tags span{background:var(--soft);border-radius:999px;padding:7px 12px;font-size:13px}
 .pal{position:fixed;z-index:86;left:50%;top:12vh;width:min(640px,calc(100vw - 32px));background:var(--bg);border-radius:20px;box-shadow:0 40px 100px rgba(0,0,0,.3);overflow:hidden;opacity:0;pointer-events:none;transform:translate(-50%,-12px) scale(.97);transition:opacity .25s,transform .4s var(--ease)}
-body.pal .pal{opacity:1;pointer-events:auto;transform:translate(-50%,0)}
+body.palo .pal{opacity:1;pointer-events:auto;transform:translate(-50%,0)}
 .pal .q{display:flex;align-items:center;gap:12px;padding:0 14px 0 20px;border-bottom:1px solid var(--line)}
 .pal .q input{flex:1;border:0;background:none;outline:none;height:62px;font-size:19px;min-width:0}
 .pal .res{max-height:min(58vh,460px);overflow:auto;padding:6px}
@@ -306,6 +307,54 @@ body.pal .pal{opacity:1;pointer-events:auto;transform:translate(-50%,0)}
   .logo span{font-size:16px}
   .stats{gap:22px}
 }
+
+.tabbar,.mdots,.hint-t{display:none}
+.sheet .gal>img+img{display:none}
+@media (max-width:860px){
+ body{padding-bottom:calc(84px + env(safe-area-inset-bottom,0px))}
+ .hero{display:flex!important;flex-direction:column;padding-top:20px}
+ .hero .txt,.hero .txt>div:first-child{display:contents}
+ .hero .eye{order:1;align-self:flex-start;margin-bottom:14px}
+ .hero .h1{order:2}
+ .mosaic{order:3;display:flex!important;overflow-x:auto;scroll-snap-type:x mandatory;gap:10px;margin:22px -20px 0;padding:4px 20px 8px;min-height:0!important;scrollbar-width:none;perspective:none;-webkit-overflow-scrolling:touch}
+ .mosaic::-webkit-scrollbar{display:none}
+ .mosaic .feat{flex:0 0 80%;height:min(112vw,460px);scroll-snap-align:center;grid-row:auto!important;grid-column:auto!important;transform:none!important}
+ .mosaic .feat .cap span{display:block!important}.mosaic .feat .cap .p{display:inline!important}
+ .mdots{order:4;display:flex;justify-content:center;gap:6px;margin:10px 0 6px}
+ .mdots i{width:6px;height:6px;border-radius:99px;background:#d6d3cc;transition:width .4s var(--ease),background .4s}
+ .mdots i.on{width:22px;background:var(--ink)}
+ .hint-t{order:5;display:block;text-align:center;font:500 10px var(--mono);letter-spacing:.12em;text-transform:uppercase;color:var(--dim);margin:0 0 22px}
+ .hero .lead{order:6}.hero .ctas{order:7}.hero .stats{order:8}
+ .hero .ctas{margin-top:26px}.hero .ctas .btn{flex:1 1 auto;justify-content:center}.hero .stats{margin-top:30px}
+ .feat.on .real{clip-path:circle(150% at var(--cx,50%) var(--cy,50%))}
+ .feat.on .pu{background:var(--ink);color:var(--bg)}.feat.on .pu .u{display:none}.feat.on .pu .r{display:inline}
+ .tabbar{display:grid;position:fixed;left:10px;right:10px;bottom:calc(10px + env(safe-area-inset-bottom,0px));z-index:60;grid-template-columns:repeat(4,1fr);background:rgba(18,18,18,.92);backdrop-filter:saturate(1.4) blur(16px);-webkit-backdrop-filter:saturate(1.4) blur(16px);border-radius:24px;padding:6px;box-shadow:0 20px 40px -12px rgba(0,0,0,.45);transition:transform .5s var(--ease)}
+ body.cart .tabbar,body.qv .tabbar,body.palo .tabbar{transform:translateY(140%)}
+ .tabbar button{position:relative;display:flex;flex-direction:column;align-items:center;gap:3px;padding:8px 0 7px;border:0;background:none;color:rgba(255,255,255,.55);font-size:10.5px;font-weight:500;border-radius:18px;transition:color .3s,background .3s;-webkit-tap-highlight-color:transparent}
+ .tabbar button.on{color:#fff;background:rgba(255,255,255,.12)}
+ .tabbar button:active{transform:scale(.94)}
+ .tabbar svg{width:21px;height:21px}
+ .tabbar .cartn{position:absolute;top:3px;left:calc(50% + 5px);min-width:18px;height:18px;font-size:10px;background:var(--acc);color:#fff;padding:0 5px}
+ .toast{bottom:calc(94px + env(safe-area-inset-bottom,0px))}
+ .hd .cartb{display:none}
+ .drawer{top:auto;left:0;right:0;bottom:0;width:100%;max-height:90vh;overflow:auto;border-radius:24px 24px 0 0;transform:translateY(105%);padding-top:28px}
+ body.cart .drawer{transform:none}
+ .drawer::before,.sheet::before{content:"";position:absolute;top:9px;left:50%;width:42px;height:5px;margin-left:-21px;border-radius:9px;background:rgba(0,0,0,.2);z-index:6}
+ .sheet::before{background:rgba(255,255,255,.85)}
+ .sheet .gal{display:flex;overflow-x:auto;scroll-snap-type:x mandatory;scrollbar-width:none;min-height:0!important;height:min(104vw,440px)}
+ .sheet .gal::-webkit-scrollbar{display:none}
+ .sheet .gal>img,.sheet .gal>img+img{display:block;position:relative;inset:auto;flex:0 0 100%;height:100%;scroll-snap-align:center;animation:none}
+ .sheet .thumbs{display:none}
+ .sheet .gd{position:absolute;left:0;right:0;top:calc(min(104vw,440px) - 26px);display:flex;justify-content:center;gap:6px;z-index:3;pointer-events:none}
+ .sheet .gd i{width:6px;height:6px;border-radius:9px;background:rgba(255,255,255,.6);transition:width .3s var(--ease),background .3s}
+ .sheet .gd i.on{width:18px;background:#fff}
+ .sheet .buy{position:sticky;bottom:0;background:var(--bg);padding:14px 0 calc(6px + env(safe-area-inset-bottom,0px));margin-top:8px;box-shadow:0 -12px 20px -12px rgba(0,0,0,.12)}
+ .drawer.drag,.sheet.drag{transition:none!important}
+ .pal{top:0;left:0;width:100%;transform:translateY(-16px);border-radius:0 0 24px 24px;padding-top:env(safe-area-inset-top,0px)}
+ body.palo .pal{transform:none}
+ .pal input{font-size:16px}.pal .hint{display:none}
+}
+@media (max-width:860px) and (hover:none){.feat:hover .real{clip-path:circle(0% at var(--cx,50%) var(--cy,50%))}.feat.on:hover .real,.feat.on .real{clip-path:circle(150% at var(--cx,50%) var(--cy,50%))}.feat:hover .pu{background:rgba(255,255,255,.9);color:inherit}.feat:hover .pu .u{display:inline}.feat:hover .pu .r{display:none}.feat.on .pu{background:var(--ink);color:var(--bg)}.feat.on .pu .u{display:none}.feat.on .pu .r{display:inline}}
 @media (prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}html{scroll-behavior:auto}}
 </style>
 
@@ -353,6 +402,7 @@ body.pal .pal{opacity:1;pointer-events:auto;transform:translate(-50%,0)}
     <div class="stats"><div><b class="nall"></b>pièces en ligne</div><div><b id="nBr"></b>grandes maisons</div><div><b>50 km</b>remise en main propre</div></div>
   </div>
   <div class="mosaic" id="mosaic"></div>
+  <div class="mdots" id="mdots" aria-hidden="true"></div><p class="hint-t">Touchez une pièce pour la voir en vrai</p>
 </section>
 
 <div class="wrap cats" id="cats"></div>
@@ -433,6 +483,12 @@ body.pal .pal{opacity:1;pointer-events:auto;transform:translate(-50%,0)}
   <div class="res" id="palR"></div>
   <div class="hint"><span>↑ ↓ pour naviguer · Entrée pour ouvrir</span><span>Échap pour fermer</span></div>
 </div>
+<nav class="tabbar" id="tabbar" aria-label="Navigation">
+  <button data-tab="top" class="on"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"><path d="M4 10.5 12 4l8 6.5V20h-5v-6H9v6H4z"/></svg>Accueil</button>
+  <button data-tab="collection"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="4" y="4" width="7" height="7" rx="2"/><rect x="13" y="4" width="7" height="7" rx="2"/><rect x="4" y="13" width="7" height="7" rx="2"/><rect x="13" y="13" width="7" height="7" rx="2"/></svg>Collection</button>
+  <button data-tab="search"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="11" cy="11" r="7"/><path d="m20 20-4-4"/></svg>Recherche</button>
+  <button data-tab="cart"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"><path d="M5 8h14l-1.2 12H6.2z"/><path d="M9 8V7a3 3 0 0 1 6 0v1"/></svg><span class="cartn">0</span>Panier</button>
+</nav>
 <div class="toast" id="toast"></div>
 
 <script>
@@ -466,7 +522,7 @@ const mos=document.getElementById('mosaic');
 mos.innerHTML=M.map(m=>{const x=byId(m.id);return `<div class="feat" data-qv="${x.id}" style="--t:${m.t}"><span class="pu"><span class="u">Pièce unique</span><span class="r">La vraie pièce</span></span><div class="ill"><svg viewBox="${m.vb}"><use href="#s-${m.s}"/></svg></div><div class="real"><img src="${x.img[0]}" alt="${x.brand} ${x.name}"></div><div class="cap"><div><b>${x.brand}</b><span>${x.name}</span></div><span class="p">${eur(x.price)}</span><button class="qa" data-add="${x.id}" data-short="1" aria-label="Ajouter ${x.name} au panier">+</button></div></div>`}).join('');
 mos.querySelectorAll('.feat').forEach(f=>{
   f.addEventListener('pointerenter',e=>{const r=f.getBoundingClientRect();f.style.setProperty('--cx',(e.clientX-r.left)+'px');f.style.setProperty('--cy',(e.clientY-r.top)+'px');});
-  f.addEventListener('pointermove',e=>{if(reduce)return;const r=f.getBoundingClientRect(),dx=(e.clientX-r.left)/r.width-.5,dy=(e.clientY-r.top)/r.height-.5;f.style.transform=`rotateY(${dx*6}deg) rotateX(${-dy*6}deg)`;});
+  f.addEventListener('pointermove',e=>{if(reduce||e.pointerType!=='mouse')return;const r=f.getBoundingClientRect(),dx=(e.clientX-r.left)/r.width-.5,dy=(e.clientY-r.top)/r.height-.5;f.style.transform=`rotateY(${dx*6}deg) rotateX(${-dy*6}deg)`;});
   f.addEventListener('pointerleave',()=>f.style.transform='');
 });
 
@@ -505,9 +561,9 @@ function renderCart(){
 let tt;
 function toast(x){const t=document.getElementById('toast');t.innerHTML=`<img src="${x.img[0]}" alt=""><span><small>Ajouté au panier</small>${x.brand?x.brand+' · ':''}${x.name}</span><button data-open>Voir le panier</button>`;t.classList.add('on');clearTimeout(tt);tt=setTimeout(()=>t.classList.remove('on'),3400);}
 function fly(from,x){const c=document.querySelector('.hd .cartb');if(reduce||!c)return;const a=from.getBoundingClientRect(),b=c.getBoundingClientRect();const d=document.createElement('div');d.className='fly';d.innerHTML=`<img src="${x.img[0]}" alt="">`;d.style.left=(a.left+a.width/2-35)+'px';d.style.top=(a.top+a.height/2-35)+'px';document.body.appendChild(d);requestAnimationFrame(()=>{d.style.transform=`translate(${b.left+b.width/2-a.left-a.width/2}px,${b.top+b.height/2-a.top-a.height/2}px) scale(.2)`;d.style.opacity='.3';});setTimeout(()=>d.remove(),850);}
-function add(btn){const id=+btn.dataset.add,x=byId(id);if(cart.has(id)){openCart();return;}cart.add(id);fly(btn,x);setTimeout(()=>{renderCart();toast(x);},reduce?0:700);}
-function openCart(){document.body.classList.remove('qv','pal');document.body.classList.add('cart');document.getElementById('toast').classList.remove('on');}
-function closeAll(){document.body.classList.remove('cart','qv','pal');}
+function add(btn){const id=+btn.dataset.add,x=byId(id);if(cart.has(id)){openCart();return;}cart.add(id);if(navigator.vibrate)navigator.vibrate(12);fly(btn,x);setTimeout(()=>{renderCart();toast(x);},reduce?0:700);}
+function openCart(){document.body.classList.remove('qv','palo');document.body.classList.add('cart');document.getElementById('toast').classList.remove('on');}
+function closeAll(){document.body.classList.remove('cart','qv','palo');}
 document.addEventListener('click',e=>{
   const a=e.target.closest('[data-add]');if(a){e.preventDefault();e.stopPropagation();add(a);return;}
   const r=e.target.closest('[data-rm]');if(r){cart.delete(+r.dataset.rm);renderCart();return;}
@@ -521,23 +577,45 @@ document.getElementById('go').addEventListener('click',()=>{const m=document.get
 /* quick view */
 const sheet=document.getElementById('sheet');
 function openQV(id){const x=byId(id);
-  sheet.innerHTML=`<div class="gal"><img src="${x.img[0]}" alt="${x.brand} ${x.name}"><div class="thumbs">${x.img.map((s,i)=>`<button class="${i?'':'on'}" data-g="${s}" aria-label="Photo ${i+1}"><img src="${s}" alt=""></button>`).join('')}</div></div>
+  sheet.innerHTML=`<div class="gal">${x.img.map((g,i)=>`<img src="${g}" alt="${i?'':x.brand+' '+x.name}">`).join('')}<div class="thumbs">${x.img.map((s,i)=>`<button class="${i?'':'on'}" data-g="${s}" aria-label="Photo ${i+1}"><img src="${s}" alt=""></button>`).join('')}</div></div>${x.img.length>1?`<div class="gd">${x.img.map((g,i)=>`<i class="${i?'':'on'}"></i>`).join('')}</div>`:''}
   <div class="inf"><div class="top"><span class="br">${x.brand||x.cat}</span><button class="x" data-close aria-label="Fermer">×</button></div><h3>${x.name}</h3><p class="ds">${x.desc}…</p><div class="tags"><span>Pièce unique</span><span>${x.cat}</span><span>Retrait Lyon</span><span>Retrait Annecy</span><span>Livraison</span></div>
   <dl class="spec"><dt>État</dt><dd>Vendu en l'état, voir photos</dd><dt>Prix</dt><dd>Fixe, pas d'enchères</dd></dl>
   <div class="buy"><span class="pr">${x.sold?'Vendu':eur(x.price)}</span>${x.sold?'':`<button class="btn" data-add="${x.id}">Ajouter au panier <span class="ar">→</span></button>`}</div></div>`;
-  document.body.classList.remove('pal','cart');document.body.classList.add('qv');renderCart();}
+  document.body.classList.remove('palo','cart');document.body.classList.add('qv');renderCart();}
 sheet.addEventListener('click',e=>{const g=e.target.closest('[data-g]');if(!g)return;const im=sheet.querySelector('.gal>img');im.src=g.dataset.g;im.style.animation='none';void im.offsetWidth;im.style.animation='';sheet.querySelectorAll('[data-g]').forEach(b=>b.classList.toggle('on',b===g));});
 
 /* search palette */
 const pq=document.getElementById('palQ'),pr=document.getElementById('palR');let sel=0,hits=[];
 function search(){const q=pq.value.trim().toLowerCase();hits=q?P.filter(x=>q.split(/\s+/).every(w=>(x.brand+' '+x.name+' '+x.cat+' '+x.desc).toLowerCase().includes(w))):avail.slice(0,7);sel=0;
   pr.innerHTML=hits.length?hits.map((x,i)=>`<button class="r${i?'':' sel'}" data-qv="${x.id}"><img src="${x.img[0]}" alt=""><span><small>${x.brand||x.cat}</small><b>${x.name}</b></span><i>${x.sold?'Vendu':eur(x.price)}</i></button>`).join(''):'<p class="empty" style="padding:16px">Aucune pièce. Essayez « cristal », « Limoges » ou « Baccarat ».</p>';}
-function openPal(){document.body.classList.remove('cart','qv');document.body.classList.add('pal');pq.value='';search();setTimeout(()=>pq.focus(),60);}
+function openPal(){document.body.classList.remove('cart','qv');document.body.classList.add('palo');pq.value='';search();setTimeout(()=>pq.focus(),60);}
 document.getElementById('openPal').addEventListener('click',openPal);
 pq.addEventListener('input',search);
 pq.addEventListener('keydown',e=>{const rs=[...pr.querySelectorAll('.r')];if(!rs.length)return;if(e.key==='ArrowDown'||e.key==='ArrowUp'){e.preventDefault();sel=(sel+(e.key==='ArrowDown'?1:-1)+rs.length)%rs.length;rs.forEach((r,i)=>r.classList.toggle('sel',i===sel));rs[sel].scrollIntoView({block:'nearest'});}if(e.key==='Enter'&&hits[sel])openQV(hits[sel].id);});
 addEventListener('keydown',e=>{if((e.metaKey||e.ctrlKey)&&e.key.toLowerCase()==='k'){e.preventDefault();openPal();}if(e.key==='Escape')closeAll();});
 
+
+/* ---- phone ---- */
+const mob=matchMedia('(max-width:860px)');
+const touch=matchMedia('(hover:none)');
+const md=document.getElementById('mdots');md.innerHTML=M.map((m,i)=>`<i class="${i?'':'on'}"></i>`).join('');
+mos.addEventListener('scroll',()=>{const fs=[...mos.children],c=mos.scrollLeft+mos.clientWidth/2;let k=0,b=1e9;fs.forEach((f,i)=>{const d=Math.abs(f.offsetLeft+f.offsetWidth/2-c);if(d<b){b=d;k=i}});md.querySelectorAll('i').forEach((d,i)=>d.classList.toggle('on',i===k));},{passive:true});
+mos.querySelectorAll('.feat').forEach(f=>f.addEventListener('click',e=>{if(e.target.closest('[data-add]'))return;if((touch.matches||mob.matches)&&!f.classList.contains('on')){e.stopPropagation();e.preventDefault();const r=f.getBoundingClientRect();f.style.setProperty('--cx',(e.clientX-r.left)+'px');f.style.setProperty('--cy',(e.clientY-r.top)+'px');mos.querySelectorAll('.feat.on').forEach(o=>o!==f&&o.classList.remove('on'));f.classList.add('on');if(navigator.vibrate)navigator.vibrate(8);}},true));
+/* tab bar */
+const tb=document.getElementById('tabbar');
+tb.addEventListener('click',e=>{const b=e.target.closest('[data-tab]');if(!b)return;const t=b.dataset.tab;
+ if(t==='search'){openPal();return}if(t==='cart'){openCart();return}
+ closeAll();const el=t==='top'?document.body:document.getElementById(t);(t==='top'?window.scrollTo({top:0,behavior:reduce?'auto':'smooth'}):el.scrollIntoView({behavior:reduce?'auto':'smooth'}));});
+const colEl=document.getElementById('collection');
+addEventListener('scroll',()=>{const r=colEl.getBoundingClientRect(),inCol=r.top<innerHeight*.5&&r.bottom>innerHeight*.3;tb.querySelectorAll('[data-tab]').forEach(b=>b.classList.toggle('on',b.dataset.tab===(inCol?'collection':'top')));},{passive:true});
+/* gallery dots on swipe */
+sheet.addEventListener('scroll',e=>{const g=e.target;if(!g.classList||!g.classList.contains('gal'))return;const k=Math.round(g.scrollLeft/g.clientWidth);sheet.querySelectorAll('.gd i').forEach((d,i)=>d.classList.toggle('on',i===k));},{capture:true,passive:true});
+/* swipe down to close sheet and cart */
+[sheet,document.querySelector('.drawer')].forEach(p=>{let y0=null,dy=0;
+ p.addEventListener('touchstart',e=>{if(!mob.matches)return;if(p.scrollTop>0||e.target.closest('.gal'))return;y0=e.touches[0].clientY;dy=0;},{passive:true});
+ p.addEventListener('touchmove',e=>{if(y0===null)return;dy=Math.max(0,e.touches[0].clientY-y0);if(dy>4){p.classList.add('drag');p.style.transform=`translateY(${dy}px)`;}},{passive:true});
+ p.addEventListener('touchend',()=>{if(y0===null)return;p.classList.remove('drag');p.style.transform='';if(dy>110)closeAll();y0=null;});
+});
 /* reveal */
 const io='IntersectionObserver' in window&&!reduce?new IntersectionObserver(es=>es.forEach(en=>{if(en.isIntersecting){en.target.classList.remove('pre');en.target.classList.add('in');io.unobserve(en.target);}}),{rootMargin:'0px 0px -6% 0px'}):null;
 document.querySelectorAll('.rv').forEach(el=>{if(io)io.observe(el);else el.classList.remove('pre');});
