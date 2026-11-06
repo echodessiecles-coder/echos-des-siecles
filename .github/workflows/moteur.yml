@@ -1,0 +1,66 @@
+name: Moteur Échos des siècles
+
+# Tourne toutes les 5 minutes (GitHub peut décaler de quelques minutes),
+# et à la demande depuis l'admin (bouton « Lancer maintenant »).
+on:
+  schedule:
+    - cron: '*/5 * * * *'
+  workflow_dispatch:
+    inputs:
+      veille:
+        description: 'Forcer la veille Interenchères'
+        type: boolean
+        default: false
+
+concurrency:
+  group: moteur
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+
+jobs:
+  cycle:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: engine/package-lock.json
+      - run: npm ci --omit=dev
+        working-directory: engine
+      - name: Cycle
+        working-directory: engine
+        # Les journaux d'un dépôt public sont publics : le moteur n'affiche que des compteurs.
+        run: node src/run.mjs ${{ inputs.veille && '--veille' || '' }}
+        env:
+          ECHOS_DATA_KEY: ${{ secrets.ECHOS_DATA_KEY }}
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          EBAY_CLIENT_ID: ${{ secrets.EBAY_CLIENT_ID }}
+          EBAY_CLIENT_SECRET: ${{ secrets.EBAY_CLIENT_SECRET }}
+          EBAY_REFRESH_TOKEN: ${{ secrets.EBAY_REFRESH_TOKEN }}
+          EBAY_FULFILLMENT_POLICY_ID: ${{ secrets.EBAY_FULFILLMENT_POLICY_ID }}
+          EBAY_PAYMENT_POLICY_ID: ${{ secrets.EBAY_PAYMENT_POLICY_ID }}
+          EBAY_RETURN_POLICY_ID: ${{ secrets.EBAY_RETURN_POLICY_ID }}
+          EBAY_LOCATION_KEY: ${{ vars.EBAY_LOCATION_KEY }}
+          SITE_URL: https://echosdessiecles.fr
+          ADMIN_URL: https://echosdessiecles.fr/admin/
+      - name: Enregistrer
+        run: |
+          git config user.name "echos-moteur"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A data index.html img
+          if git diff --cached --quiet; then echo "Rien à enregistrer"; exit 0; fi
+          git commit -q -m "Moteur : mise à jour automatique"
+          for i in 1 2 3 4; do
+            git pull --rebase -q origin main && git push -q origin HEAD:main && exit 0
+            sleep $((i * 3))
+          done
+          exit 1
