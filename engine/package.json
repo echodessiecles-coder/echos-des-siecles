@@ -1,0 +1,16 @@
+{
+  "name": "echos-moteur",
+  "private": true,
+  "type": "module",
+  "description": "Moteur d'Échos des siècles : veille Interenchères, bot Telegram, publication site / eBay / Leboncoin",
+  "engines": { "node": ">=20" },
+  "scripts": {
+    "cycle": "node src/run.mjs",
+    "veille": "node src/run.mjs --veille",
+    "serve": "node src/serve.mjs",
+    "test": "node --test test/*.test.mjs"
+  },
+  "dependencies": {
+    "@anthropic-ai/sdk": "^0.70.0"
+  }
+}
