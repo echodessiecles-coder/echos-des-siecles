@@ -45,13 +45,44 @@ export function demoState() {
   const o2 = add('Service à crème sur plateau', 'Porcelaine bleu et or', 'Porcelaine', 92, 36, 350, 'en_ligne');
   applyCommand(s, { type: 'item.vendu', id: o2.id, canal: 'site', acheteur: 'Paul D.', ville: 'Annecy' });
   applyCommand(s, { type: 'commande.livraison', id: Object.keys(s.orders).at(-1), livraison: 'retrait_annecy' });
-  s.jobs = [];
-  s.tg = { chatId: 1, nom: 'Stéphane', offset: 0 };
-  s.status = { lastRun: at(-4 * 60e3), lastVeille: at(-35 * 60e3), services: { interencheres: { ok: true, vus: 186, nouveaux: 4 }, telegram: { ok: true, relie: true, nom: 'Stéphane' }, config: { telegram: true, ebay: true, ia: true, leboncoin: 'assiste' } } };
+  // Historique de ventes (graphique des 30 derniers jours).
+  const histo = [
+    ['Verres à porto Baccarat, 6 pièces', 'Baccarat', 'Cristal', 60, 4, 280, 'site', 27],
+    ['Assiettes à dessert Haviland, 12', 'Haviland', 'Porcelaine', 40, 5, 190, 'leboncoin', 24],
+    ['Seau à champagne Christofle', 'Christofle', 'Argenterie', 85, 6, 330, 'ebay', 21],
+    ['Carafe Saint-Louis Tommy', 'Saint-Louis', 'Cristal', 120, 7, 460, 'site', 18],
+    ['Tasses à café Sèvres, 6', 'Sèvres', 'Porcelaine', 70, 8, 290, 'leboncoin', 15],
+    ['Coupe Daum signée', 'Daum', 'Cristal', 55, 10, 240, 'ebay', 12],
+    ['Paysage d\'hiver, école russe', 'École russe', 'Tableaux', 380, 30, 1450, 'site', 9],
+    ['Verres à eau Lalique, 6', 'Lalique', 'Cristal', 160, 11, 620, 'leboncoin', 6],
+    ['Ménagère Ercuis 37 pièces', 'Ercuis', 'Argenterie', 140, 12, 540, 'ebay', 3],
+  ];
+  for (const [titre, marque, cat, marteau, ph, prix, canal, j] of histo) {
+    const it = add(titre, marque, cat, marteau, ph, prix, 'en_ligne');
+    applyCommand(s, { type: 'item.vendu', id: it.id, canal, acheteur: 'Client', ville: 'Lyon' });
+    const o = Object.values(s.orders).at(-1);
+    it.vendu.le = o.creeLe = at(-j * D - 5 * H);
+    it.creeLe = at(-(j + 9) * D);
+    o.livraison = canal === 'ebay' ? 'colissimo' : 'retrait_lyon';
+    o.statut = 'terminee';
+    for (const c of Object.keys(it.canaux)) it.canaux[c] = { statut: c === canal ? 'vendu' : 'retire' };
+  }
+  // Leboncoin « via Claude » : une annonce en file, une à supprimer.
+  s.settings.leboncoin.mode = 'claude';
+  const q = Object.values(s.items).find((i) => i.canaux?.leboncoin?.statut === 'a_coller');
+  if (q) q.canaux.leboncoin = { statut: 'file_claude' };
+  const vendue = Object.values(s.items).find((i) => i.titre.startsWith('Cave à liqueurs'));
+  if (vendue) vendue.canaux.leboncoin = { statut: 'vendu', aSupprimer: true };
+  s.jobs = [{ id: 'j90', type: 'publish', itemId: 'P0002', channel: 'ebay', tries: 3, err: 'Catégorie eBay à confirmer', at: at(-5 * H) }];
+  s.tg = { chatId: 1, nom: 'Stéphane', offset: 0, bot: 'EchosDesSieclesBot' };
+  s.status = { lastRun: at(-4 * 60e3), lastVeille: at(-35 * 60e3), saved: at(-4 * 60e3), services: { interencheres: { ok: true, le: at(-35 * 60e3), vus: 186, nouveaux: 4, erreurs: 0 }, telegram: { ok: true, le: at(-4 * 60e3), relie: true, nom: 'Stéphane', bot: 'EchosDesSieclesBot' }, ebay: { ok: true, le: at(-9 * 60e3) }, config: { telegram: true, ebay: true, ia: true, leboncoin: 'claude' } } };
   s.log = [
     { t: at(-4 * 60e3), level: 'info', msg: 'Veille : 186 lots pertinents, 4 nouveaux' },
     { t: at(-2 * H), level: 'info', msg: 'Prix de P0003 fixé à 540 € (telegram)' },
+    { t: at(-3 * H), level: 'info', msg: 'Vente C0002 : Service à crème sur plateau à 350 € (site)' },
     { t: at(-5 * H), level: 'warn', msg: 'eBay : catégorie à confirmer pour P0002' },
+    { t: at(-26 * H), level: 'info', msg: 'Leboncoin : annonce de P0004 mise en file pour Claude' },
+    { t: at(-30 * H), level: 'error', msg: 'ebay : jeton expiré, renouvelé automatiquement' },
   ];
   return s;
 }

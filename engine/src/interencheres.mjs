@@ -129,7 +129,7 @@ export function runRappels(state) {
     const t = Date.parse(lot.date || '');
     if (!Number.isFinite(t)) continue;
     lot.rappels = lot.rappels || [];
-    for (const h of state.settings.rappels.heures) {
+    for (const h of state.settings.auto?.rappels === false ? [] : state.settings.rappels.heures) {
       const due = t - h * 3600e3;
       if (nowMs >= due && nowMs < t && !lot.rappels.includes(h)) {
         lot.rappels.push(h);
@@ -138,7 +138,7 @@ export function runRappels(state) {
     }
     // 1 h après la fin (3 h pour une vente live qui dure), on demande le résultat.
     const apres = t + (lot.kind === 'online' ? 1 : 3) * 3600e3;
-    if (nowMs > apres && !lot.demandeResultat) {
+    if (nowMs > apres && !lot.demandeResultat && state.settings.auto?.demanderResultat !== false) {
       lot.demandeResultat = new Date().toISOString();
       notify(state, 'resultat', { lotId: lot.id });
     }

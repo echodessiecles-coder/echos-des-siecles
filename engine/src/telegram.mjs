@@ -239,6 +239,7 @@ export async function pollTelegram(state, ctx) {
   if (!telegramActif()) return;
   const forced = process.env.TELEGRAM_CHAT_ID;
   if (forced) state.tg.chatId = +forced;
+  if (!state.tg.bot) { try { const me = await api('getMe'); state.tg.bot = me.username; } catch {} }
   const updates = await api('getUpdates', { offset: state.tg.offset || 0, timeout: 0, allowed_updates: ['message', 'callback_query'] });
   for (const u of updates) {
     state.tg.offset = u.update_id + 1;
@@ -261,5 +262,5 @@ export async function pollTelegram(state, ctx) {
       try { await send(state, '⚠️ ' + esc(e.message)); } catch {}
     }
   }
-  state.status.services.telegram = { ok: true, le: new Date().toISOString(), relie: !!state.tg.chatId, nom: state.tg.nom || null };
+  state.status.services.telegram = { ok: true, le: new Date().toISOString(), relie: !!state.tg.chatId, nom: state.tg.nom || null, bot: state.tg.bot || null };
 }
