@@ -29,7 +29,7 @@ const PUBLISH = {
 async function runJob(state, j, ctx) {
   const it = j.itemId ? state.items[j.itemId] : null;
   if (j.type === 'notify') {
-    if (!telegramActif()) return 'skip';
+    if (!telegramActif() || state.settings.integrations?.telegram === false) return 'skip';
     return sendNotification(state, j);
   }
   if (!it) return 'skip';
@@ -43,7 +43,7 @@ async function runJob(state, j, ctx) {
   // publish / update
   if (it.statut === 'vendu' || it.statut === 'archive') return 'skip';
   if (!ch.on()) { it.canaux[j.channel] = { statut: 'non_configure' }; return 'skip'; }
-  if (iaActive() && !it.annonce) {
+  if (iaActive() && state.settings.integrations?.ia !== false && !it.annonce) {
     try { it.annonce = await redigerAnnonce(it); } catch (e) { log(state, 'Rédaction IA impossible : ' + e.message, 'warn'); it.annonce = {}; }
   }
   const r = await ch.pub(state, it, ctx);
@@ -94,7 +94,7 @@ export async function tick({ forceVeille = false } = {}) {
     try { await fn(); steps.push(name); } catch (e) { log(state, `${name} : ${e.message}`, 'error'); state.status.services[name] = { ok: false, le: new Date().toISOString(), err: e.message }; }
   };
   await safe('telegram', () => pollTelegram(state, ctx));
-  if (forceVeille || minutesSince(state.status.lastVeille) >= VEILLE_MIN - 2) {
+  if (forceVeille || (state.settings.integrations?.veille !== false && minutesSince(state.status.lastVeille) >= VEILLE_MIN - 2)) {
     await safe('interencheres', async () => { await runVeille(state); state.status.lastVeille = new Date().toISOString(); });
   }
   await safe('rappels', async () => runRappels(state));

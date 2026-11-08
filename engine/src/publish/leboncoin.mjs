@@ -14,10 +14,13 @@ import { notify } from '../model.mjs';
 
 export async function publishLeboncoin(state, item) {
   if (item.canaux.leboncoin?.statut === 'en_ligne') return { statut: 'en_ligne' };
+  // Mode « claude » : l'annonce attend dans la file ; Claude la dépose depuis le Chrome du Mac.
+  if (state.settings.leboncoin?.mode === 'claude') return { statut: 'file_claude' };
   notify(state, 'leboncoin_pack', { itemId: item.id });
   return { statut: 'a_coller' };
 }
 
 export async function unpublishLeboncoin(state, item) {
+  if (state.settings.leboncoin?.mode === 'claude') { item.canaux.leboncoin = { ...(item.canaux.leboncoin || {}), aSupprimer: true }; return; }
   notify(state, 'erreur', { itemId: item.id, message: `Pense à supprimer l'annonce Leboncoin de « ${item.titre} » (${item.id}) : elle est vendue ou retirée ailleurs.` });
 }

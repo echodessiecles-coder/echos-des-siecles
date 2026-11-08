@@ -36,26 +36,45 @@ Les réponses Telegram sont traitées au cycle suivant : 5 à 10 minutes sur Git
 quasi instantané, le même moteur tourne en continu sur un petit serveur (`npm run serve`, voir
 « Changer de serveur »).
 
+## La console
+
+L'admin (« Échos · Console ») se pilote au pouce sur téléphone (barre d'onglets + bouton ＋)
+et au clavier sur ordinateur (barre latérale, **⌘K** ou **/** pour tout chercher) :
+
+- **Vue d'ensemble** : chiffre d'affaires et marge sur 30 jours, courbe des ventes, entonnoir
+  du marteau à la vente, ce qui attend ta décision, prochaines ventes, activité.
+- **Enchères** : la veille en cartes (photo, compte à rebours, marteau max calculé dès que tu
+  tapes ta revente), filtres live / chrono / catalogue, invendus, et l'agenda (export .ics).
+- **Stock** : tableau en colonnes Prix à fixer › Prêtes › En ligne › Vendues, prix en un tap.
+- **Ventes** : commandes, choix de la livraison, suivi.
+- **Connexions** : la carte animée de tout ce qui est branché (Interenchères, Telegram, site,
+  eBay, Leboncoin, Claude, Cocolis, Stripe à venir), un interrupteur par service, les étapes de
+  mise en route, et le **coffre des secrets** pour les régler sans passer par GitHub.
+- **Automatisations** : publier dès que le prix est fixé, retirer partout à la vente, rappels,
+  question « gagné ? », règle de prix avec simulateur, recherches et filtres de la veille.
+- **Activité** : journal du moteur, tâches en file, erreurs avec bouton « Relancer ».
+
 ## Mise en route (une fois)
 
-Jamais de mot de passe ni de clé dans le chat : tout va dans les **secrets GitHub**
-(dépôt › Settings › Secrets and variables › Actions › New repository secret).
+Jamais de mot de passe ni de clé dans le chat. Tout se règle depuis l'admin, qui chiffre chaque
+secret sur ton appareil avant de l'envoyer à GitHub (ou à la main : dépôt › Settings › Secrets
+and variables › Actions).
 
-1. **Phrase secrète** : invente une phrase d'au moins 12 caractères. Secret `ECHOS_DATA_KEY`.
-   Garde-la aussi pour te connecter à l'admin (si tu la perds, les données sont illisibles).
-2. **Bot Telegram** : dans Telegram, écris à `@BotFather` › `/newbot` › nom « Échos des siècles ».
-   Il donne un jeton : secret `TELEGRAM_BOT_TOKEN`. Puis ouvre ton bot et envoie `/start` :
+1. **Jeton GitHub pour l'admin** : github.com › Settings › Developer settings › Fine-grained
+   tokens › Generate. Dépôt : seulement `echos-des-siecles`. Permissions, en lecture et
+   écriture : *Contents*, *Actions* et *Secrets*. Colle-le sur la page de connexion de l'admin.
+2. **Phrase secrète** : invente une phrase d'au moins 12 caractères et entre-la à la connexion.
+   Puis Connexions › Coffre des secrets › `ECHOS_DATA_KEY` › « Utiliser ma phrase secrète
+   actuelle ». Garde-la bien : si tu la perds, les données sont illisibles.
+3. **Bot Telegram** : dans Telegram, écris à `@BotFather` › `/newbot` › nom « Échos des siècles ».
+   Il donne un jeton : colle-le dans `TELEGRAM_BOT_TOKEN`. Puis ouvre ton bot et envoie `/start` :
    il se lie à ton compte (et à lui seul).
-3. **Jeton GitHub pour l'admin** : github.com › Settings › Developer settings › Fine-grained
-   tokens › Generate. Dépôt : seulement `echos-des-siecles`. Permissions : *Contents* lecture et
-   écriture, *Actions* lecture et écriture. Colle-le sur la page de connexion de l'admin, sur
-   ton téléphone.
-4. *(facultatif)* **Rédaction IA** : clé sur platform.claude.com : secret `ANTHROPIC_API_KEY`.
+4. *(facultatif)* **Rédaction IA** : clé sur console.anthropic.com : `ANTHROPIC_API_KEY`.
 5. *(facultatif, plus tard)* **eBay** : compte développeur sur developer.ebay.com, appli en
    production, jeton utilisateur, et politiques vendeur (livraison, paiement, retour) dans ton
    compte eBay. Secrets : `EBAY_CLIENT_ID`, `EBAY_CLIENT_SECRET`, `EBAY_REFRESH_TOKEN`,
    `EBAY_FULFILLMENT_POLICY_ID`, `EBAY_PAYMENT_POLICY_ID`, `EBAY_RETURN_POLICY_ID` et la variable
-   `EBAY_LOCATION_KEY` (lieu d'expédition créé dans eBay).
+   `EBAY_LOCATION_KEY` (lieu d'expédition créé dans eBay, à régler dans GitHub).
 
 **Interenchères : aucun identifiant nécessaire.** La veille utilise la recherche publique du
 site, comme un visiteur. Elle ne place jamais d'enchère.
@@ -65,11 +84,15 @@ site, comme un visiteur. Elle ne place jamais d'enchère.
 Leboncoin n'a pas d'API pour les particuliers et ses conditions interdisent les robots : un
 compte peut être suspendu, et les serveurs cloud sont bloqués par leur anti-robot. Trois options :
 
-1. **Assisté (actif)** : le bot envoie titre, description, prix, catégorie et photos ; tu colles
+Le mode se choisit dans Connexions › Leboncoin :
+
+1. **Assisté** : le bot envoie titre, description, prix, catégorie et photos ; tu colles
    dans l'app (30 s) et tu appuies sur « C'est publié ». À la vente ailleurs, il te rappelle de
    supprimer l'annonce.
-2. **Robot sur ton Mac** : un navigateur automatique avec ta session, depuis ta connexion. Plus
-   automatique, mais risque réel de suspension du compte. À tester ensemble si tu le veux.
+2. **Via Claude** (choisi) : les annonces à publier et à supprimer se mettent en file dans
+   l'admin ; Claude les traite depuis le Chrome de ton Mac, avec ta session et ta connexion.
+   On fait la première ensemble sur ta prochaine vraie pièce. Le risque de suspension reste
+   faible mais existe, car Leboncoin n'aime pas l'automatisation.
 3. **Compte Leboncoin Pro** : l'import d'annonces officiel (payant) permet une vraie diffusion
    automatique, sans risque.
 

@@ -43,7 +43,10 @@ export function emptyState() {
       },
       rappels: { heures: [24, 2] },
       canaux: { site: true, ebay: true, leboncoin: true },
-      leboncoin: { mode: 'assiste' }, // 'assiste' (pack prêt à coller) | 'robot' (navigateur, voir docs)
+      leboncoin: { mode: 'assiste' }, // 'assiste' (pack prêt à coller sur Telegram) | 'claude' (Claude publie depuis le Chrome du Mac)
+      // Interrupteurs des connexions et automatismes, pilotés depuis l'admin.
+      integrations: { veille: true, telegram: true, ia: true },
+      auto: { publierApresPrix: false, retirerAilleurs: true, rappels: true, demanderResultat: true },
     },
     lots: {},
     items: {},
@@ -63,6 +66,9 @@ export function normalize(state) {
   s.settings = { ...base.settings, ...(state.settings || {}) };
   s.settings.pricing = { ...base.settings.pricing, ...(s.settings.pricing || {}) };
   s.settings.veille = { ...base.settings.veille, ...(s.settings.veille || {}) };
+  s.settings.integrations = { ...base.settings.integrations, ...(s.settings.integrations || {}) };
+  s.settings.auto = { ...base.settings.auto, ...(s.settings.auto || {}) };
+  s.settings.canaux = { ...base.settings.canaux, ...(s.settings.canaux || {}) };
   s.seq = { ...base.seq, ...(s.seq || {}) };
   s.tg = { ...base.tg, ...(s.tg || {}) };
   s.status = { ...base.status, ...(s.status || {}) };
@@ -187,7 +193,8 @@ export function applyCommand(state, cmd) {
       log(state, `Prix de ${it.id} fixé à ${prix} € (${src})`);
       if (it.statut === 'prix') {
         it.statut = 'pret';
-        notify(state, 'retrait', { itemId: it.id });
+        if (state.settings.auto?.publierApresPrix) applyCommand(state, { type: 'item.publier', id: it.id, source: src });
+        else notify(state, 'retrait', { itemId: it.id });
       } else if (it.statut === 'en_ligne') setChannelsToPublish(state, it);
       break;
     }
@@ -213,7 +220,7 @@ export function applyCommand(state, cmd) {
     }
     case 'item.canal': { // ex. Leboncoin publié à la main : { id, channel, statut, url }
       const it = needItem(state, cmd.id);
-      it.canaux[cmd.channel] = { ...(it.canaux[cmd.channel] || {}), statut: cmd.statut, url: cmd.url || it.canaux[cmd.channel]?.url, le: now() };
+      it.canaux[cmd.channel] = { ...(it.canaux[cmd.channel] || {}), statut: cmd.statut, url: cmd.url || it.canaux[cmd.channel]?.url, le: now(), ...('aSupprimer' in cmd ? { aSupprimer: !!cmd.aSupprimer } : {}) };
       break;
     }
     case 'item.vendu': {
@@ -222,7 +229,7 @@ export function applyCommand(state, cmd) {
       it.statut = 'vendu';
       it.vendu = { prix: +cmd.prix || it.prix, canal: cmd.canal || 'autre', le: now() };
       // Retirer partout ailleurs pour éviter la double vente.
-      for (const ch of Object.keys(it.canaux)) {
+      if (state.settings.auto?.retirerAilleurs !== false) for (const ch of Object.keys(it.canaux)) {
         if (it.canaux[ch]?.statut === 'en_ligne' || it.canaux[ch]?.statut === 'a_publier') job(state, 'unpublish', { itemId: it.id, channel: ch, sold: true });
       }
       const oid = 'C' + String(++state.seq.order).padStart(4, '0');
