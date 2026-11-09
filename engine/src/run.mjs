@@ -7,6 +7,7 @@ import { fileURLToPath } from 'node:url';
 import { loadState, saveState, applyInbox } from './store.mjs';
 import { applyCommand, log, notify } from './model.mjs';
 import { runVeille, runRappels } from './interencheres.mjs';
+import { runVeilleMail, imapActif } from './alertes.mjs';
 import { pollTelegram, sendNotification, telegramActif, photoUrl } from './telegram.mjs';
 import { publishSite, unpublishSite } from './publish/site.mjs';
 import { publishEbay, unpublishEbay, syncEbayOrders, ebayActif } from './publish/ebay.mjs';
@@ -94,14 +95,20 @@ export async function tick({ forceVeille = false } = {}) {
     try { await fn(); steps.push(name); } catch (e) { log(state, `${name} : ${e.message}`, 'error'); state.status.services[name] = { ok: false, le: new Date().toISOString(), err: e.message }; }
   };
   await safe('telegram', () => pollTelegram(state, ctx));
-  if (forceVeille || (state.settings.integrations?.veille !== false && minutesSince(state.status.lastVeille) >= VEILLE_MIN - 2)) {
-    await safe('interencheres', async () => { await runVeille(state); state.status.lastVeille = new Date().toISOString(); });
+  // Veille : alertes e-mail d'Interenchères à chaque cycle (leur site bloque les
+  // serveurs) ; la recherche directe par API ne sert que là où elle répond (VEILLE_API=1).
+  if (state.settings.integrations?.veille !== false || forceVeille) {
+    if (imapActif()) {
+      await safe('interencheres', async () => { await runVeilleMail(state); state.status.lastVeille = new Date().toISOString(); });
+    } else if (process.env.VEILLE_API === '1' && (forceVeille || minutesSince(state.status.lastVeille) >= VEILLE_MIN - 2)) {
+      await safe('interencheres', async () => { await runVeille(state); state.status.lastVeille = new Date().toISOString(); });
+    }
   }
   await safe('rappels', async () => runRappels(state));
   if (ebayActif() && minutesSince(state.status.services.ebay?.le) >= EBAY_MIN) await safe('ebay', () => syncEbayOrders(state, applyCommand));
   await safe('taches', () => runJobs(state, ctx));
   state.status.lastRun = new Date().toISOString();
-  state.status.services.config = { telegram: telegramActif(), ebay: ebayActif(), ia: iaActive(), leboncoin: state.settings.leboncoin.mode };
+  state.status.services.config = { interencheres: imapActif(), telegram: telegramActif(), ebay: ebayActif(), ia: iaActive(), leboncoin: state.settings.leboncoin.mode };
   // On ne réécrit (et donc ne commite) que si quelque chose a vraiment changé,
   // ou une fois par heure pour montrer que le moteur tourne.
   const change = signature(state) !== avant || minutesSince(state.status.saved) >= 60;

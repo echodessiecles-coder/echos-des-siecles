@@ -207,6 +207,9 @@ const SECRETS = [
   { n: 'EBAY_FULFILLMENT_POLICY_ID', k: 'ebay', d: 'Règle d\'expédition (Business policies).' },
   { n: 'EBAY_PAYMENT_POLICY_ID', k: 'ebay', d: 'Règle de paiement.' },
   { n: 'EBAY_RETURN_POLICY_ID', k: 'ebay', d: 'Règle de retour.' },
+  { n: 'VEILLE_IMAP_USER', k: 'interencheres', d: 'Adresse de la boîte qui reçoit les alertes Interenchères (ex. une adresse Gmail dédiée).', req: true },
+  { n: 'VEILLE_IMAP_PASS', k: 'interencheres', d: 'Mot de passe d\'application de cette boîte (Gmail › Sécurité › Mots de passe des applications).', req: true },
+  { n: 'VEILLE_IMAP_HOST', k: 'interencheres', d: 'Facultatif : serveur IMAP, déduit tout seul pour Gmail, Outlook, Orange, Free, iCloud.' },
   { n: 'TELEGRAM_CHAT_ID', k: 'telegram', d: 'Facultatif : se remplit tout seul quand tu envoies /start au bot.' },
 ];
 const INTEG = [
@@ -222,7 +225,7 @@ const INTEG = [
 const secretOk = (n) => (SEC && SEC !== 'noperm' ? !!SEC[n] : null);
 function conf(k) { // l'intégration a-t-elle ses identifiants ?
   const c = S.status.services?.config || {};
-  const bySec = { telegram: secretOk('TELEGRAM_BOT_TOKEN'), ebay: secretOk('EBAY_REFRESH_TOKEN'), ia: secretOk('ANTHROPIC_API_KEY') }[k];
+  const bySec = { interencheres: secretOk('VEILLE_IMAP_PASS'), telegram: secretOk('TELEGRAM_BOT_TOKEN'), ebay: secretOk('EBAY_REFRESH_TOKEN'), ia: secretOk('ANTHROPIC_API_KEY') }[k];
   return bySec ?? c[k] ?? false;
 }
 function status(k) {
@@ -231,6 +234,7 @@ function status(k) {
     case 'interencheres': {
       if (I.veille === false) return { c: 'off', t: 'En pause' };
       const s = sv.interencheres;
+      if (!conf('interencheres') && !s) return { c: 'wait', t: 'Boîte des alertes à brancher' };
       if (!s) return { c: 'wait', t: 'Premier passage à venir' };
       return s.ok ? { c: 'ok', t: `${s.vus ?? 0} lots · ${depuis(s.le || S.status.lastVeille)}` } : { c: 'err', t: s.err || 'Erreur de veille' };
     }
@@ -536,8 +540,13 @@ function vConnexions() {
       steps: [['Données chiffrées AES-256 dans le dépôt', true], ['Secret <b>ECHOS_DATA_KEY</b> : ta phrase secrète', secretOk('ECHOS_DATA_KEY') ?? !!S.status.lastRun], ['Cycle automatique toutes les 5 min', !!S.status.lastRun]],
       links: `${ext(`https://github.com/${repo()}/actions`, 'Exécutions')}<button class="btn sec sm" data-act="run">Lancer</button>`,
     })}
-    ${connCard('interencheres', `<p class="dim" style="font-size:13px">${S.settings.veille.requetes.filter((r) => r.actif).length} recherches actives, ${Object.entries(S.settings.veille.types).filter(([, v]) => v).map(([k]) => KIND[k][0]).join(', ')}. API publique, aucun compte nécessaire.</p>`, {
-      tog: 'integrations.veille', secrets: false,
+    ${connCard('interencheres', `<p class="dim" style="font-size:13px">Interenchères bloque les robots : la veille lit les <b>alertes e-mail</b> qu'il envoie pour tes recherches enregistrées, toutes les 5 minutes, même ordinateur éteint. ${sv.interencheres?.mails != null ? `${sv.interencheres.mails} alertes lues au dernier passage.` : ''}</p>`, {
+      tog: 'integrations.veille',
+      steps: [
+        ['Créer une boîte dédiée (ex. Gmail) et y activer la validation en 2 étapes', conf('interencheres')],
+        ['Sur interencheres.com, enregistrer chaque recherche en alerte (Baccarat, école russe…) envoyée à cette boîte', !!sv.interencheres?.mails],
+        ['Ajouter ici l\'adresse et le <b>mot de passe d\'application</b>', conf('interencheres')],
+      ],
       stats: [[String(sv.interencheres?.vus ?? '—'), 'lots vus'], [String(lots().filter((l) => l.statut === 'nouveau').length), 'nouveaux'], [String(lots().filter((l) => l.statut === 'suivi').length), 'suivis']],
       links: `<button class="btn sec sm" data-act="veille">${icon('radar', 14)} Veille maintenant</button><a class="btn ghost sm" href="#auto">Recherches ›</a>`,
     })}

@@ -44,6 +44,9 @@ jobs:
         run: node src/diagnostic.mjs
         env:
           ECHOS_DATA_KEY: ${{ secrets.ECHOS_DATA_KEY }}
+          VEILLE_IMAP_USER: ${{ secrets.VEILLE_IMAP_USER }}
+          VEILLE_IMAP_PASS: ${{ secrets.VEILLE_IMAP_PASS }}
+          VEILLE_IMAP_HOST: ${{ secrets.VEILLE_IMAP_HOST }}
           TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
           EBAY_REFRESH_TOKEN: ${{ secrets.EBAY_REFRESH_TOKEN }}
@@ -54,6 +57,9 @@ jobs:
         run: node src/run.mjs ${{ inputs.veille && '--veille' || '' }}
         env:
           ECHOS_DATA_KEY: ${{ secrets.ECHOS_DATA_KEY }}
+          VEILLE_IMAP_USER: ${{ secrets.VEILLE_IMAP_USER }}
+          VEILLE_IMAP_PASS: ${{ secrets.VEILLE_IMAP_PASS }}
+          VEILLE_IMAP_HOST: ${{ secrets.VEILLE_IMAP_HOST }}
           TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
           TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
