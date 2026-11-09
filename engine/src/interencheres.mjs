@@ -57,7 +57,8 @@ export function normalizeLot(it, requete) {
     cp: s.address?.postcode || org.address?.postcode || '',
     contact: { tel: org.address?.telephone || s.address?.telephone || '', email: org.address?.email || s.address?.email || '' },
     livraison: !!it.has_shipping,
-    url: it.url || it.link || `https://www.interencheres.com/recherche/lots?search=${encodeURIComponent(titre.slice(0, 60))}`,
+    // Lien direct vérifié : la catégorie « art-decoration » et le libellé de vente sont libres, seuls les numéros comptent.
+    url: it.url || it.link || (s.id ? `https://www.interencheres.com/art-decoration/vente-${s.id}/lot-${it.id}.html` : `https://www.interencheres.com/recherche/lots?search=${encodeURIComponent(titre.slice(0, 60))}`),
     requete: requete.q,
     tag: requete.tag,
   };
