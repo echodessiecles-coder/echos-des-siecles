@@ -12,7 +12,6 @@ import { demoState } from './demo.mjs';
 
 /* ================= configuration ================= */
 const LS = 'echos-admin-v1';
-const THEME = 'echos-console-theme';
 const DEFAULT_REPO = 'u8tscared/echos-des-siecles';
 const WORKFLOW = 'moteur.yml';
 const SITE = 'https://echosdessiecles.fr/';
@@ -211,14 +210,14 @@ const SECRETS = [
   { n: 'TELEGRAM_CHAT_ID', k: 'telegram', d: 'Facultatif : se remplit tout seul quand tu envoies /start au bot.' },
 ];
 const INTEG = [
-  { k: 'interencheres', n: 'Interenchères', ic: 'hammer', col: '#ff7a6b', dir: 'in', role: 'Veille des ventes', x: 15, y: 25 },
-  { k: 'telegram', n: 'Telegram', ic: 'send', col: '#34b4f0', dir: 'in', role: 'Alertes et réponses', x: 50, y: 14 },
-  { k: 'site', n: 'Site', ic: 'globe', col: '#e3b860', dir: 'out', role: 'echosdessiecles.fr', x: 85, y: 25 },
-  { k: 'ebay', n: 'eBay', ic: 'bag', col: '#6f9bff', dir: 'out', role: 'Annonces et commandes', x: 90, y: 54 },
-  { k: 'leboncoin', n: 'Leboncoin', ic: 'box', col: '#ff9549', dir: 'out', role: 'Annonces', x: 77, y: 80 },
-  { k: 'cocolis', n: 'Cocolis', ic: 'truck', col: '#3ddc97', dir: 'out', role: 'Livraison', x: 50, y: 87 },
-  { k: 'stripe', n: 'Stripe', ic: 'card', col: '#9b7bff', dir: 'in', role: 'Paiement en ligne', x: 23, y: 80 },
-  { k: 'ia', n: 'Claude IA', ic: 'spark', col: '#e08a63', dir: 'in', role: 'Rédaction', x: 10, y: 54 },
+  { k: 'interencheres', n: 'Interenchères', ic: 'hammer', col: '#c2412d', dir: 'in', role: 'Veille des ventes', x: 15, y: 25 },
+  { k: 'telegram', n: 'Telegram', ic: 'send', col: '#1f86c7', dir: 'in', role: 'Alertes et réponses', x: 50, y: 14 },
+  { k: 'site', n: 'Site', ic: 'globe', col: '#b8913a', dir: 'out', role: 'echosdessiecles.fr', x: 85, y: 25 },
+  { k: 'ebay', n: 'eBay', ic: 'bag', col: '#1f3d9c', dir: 'out', role: 'Annonces et commandes', x: 90, y: 54 },
+  { k: 'leboncoin', n: 'Leboncoin', ic: 'box', col: '#d4661c', dir: 'out', role: 'Annonces', x: 77, y: 80 },
+  { k: 'cocolis', n: 'Cocolis', ic: 'truck', col: '#1f7a4d', dir: 'out', role: 'Livraison', x: 50, y: 87 },
+  { k: 'stripe', n: 'Stripe', ic: 'card', col: '#5b3fa6', dir: 'in', role: 'Paiement en ligne', x: 23, y: 80 },
+  { k: 'ia', n: 'Claude IA', ic: 'spark', col: '#c26a3f', dir: 'in', role: 'Rédaction', x: 10, y: 54 },
 ];
 const secretOk = (n) => (SEC && SEC !== 'noperm' ? !!SEC[n] : null);
 function conf(k) { // l'intégration a-t-elle ses identifiants ?
@@ -321,25 +320,19 @@ function badge(v) {
 
 function shell(inner) {
   const v = curView();
-  const link = (k) => `<a href="#${k}" class="${v === k ? 'on' : ''}">${icon(VIEWS[k].i)}<span>${VIEWS[k].t}</span>${badge(k)}</a>`;
+  const SHORT = { accueil: 'Accueil', encheres: 'Enchères', stock: 'Stock', ventes: 'Ventes', connexions: 'Connexions', auto: 'Automatismes', activite: 'Activité', reglages: 'Réglages' };
+  const link = (k) => { const n = badge(k).replace(/<\/?b>/g, ''); return `<a href="#${k}" class="${v === k ? 'on' : ''}">${SHORT[k]}${n ? `<sup>${n}</sup>` : ''}</a>`; };
   const tab = (k, label) => `<a href="#${k}" class="${v === k ? 'on' : ''}">${icon(VIEWS[k].i)}<span>${label}</span>${badge(k)}</a>`;
-  const brand = `<a class="brand" href="#accueil"><span class="mark"><svg width="20" height="20"><use href="#logo"/></svg></span><span><small>Échos des siècles</small><strong>Console</strong></span></a>`;
-  const gst = status('github');
   return `<div class="app">
-    <aside class="side">${brand}
-      <button class="srch" data-act="pal">${icon('search', 16)}<span>Rechercher…</span><span class="kbd">⌘K</span></button>
-      <div class="lbl">Pilotage</div>${['accueil', 'encheres', 'stock', 'ventes'].map(link).join('')}
-      <div class="lbl">Système</div>${['connexions', 'auto', 'activite', 'reglages'].map(link).join('')}
-      <div class="foot"><div style="display:flex;align-items:center;gap:8px;font-weight:550"><i class="dot ${gst.c === 'ok' ? '' : gst.c === 'err' ? 'red' : 'amber'}"></i>Moteur ${gst.c === 'ok' ? 'actif' : 'en veille'}</div><div class="dim" style="margin-top:4px">${esc(gst.t)} · toutes les 5 min</div>
-        <button class="btn sec sm full" style="margin-top:10px" data-act="run">${icon('bolt', 15)} Lancer maintenant</button></div>
-    </aside>
-    <div class="mainw">
-      <header class="top">${brand}<span class="sp"></span><span class="live" data-sync>${syncHtml()}</span>
-        <button class="ib" data-act="pal" aria-label="Rechercher">${icon('search', 18)}</button>
-        <a class="ib" href="#connexions" aria-label="Connexions">${icon('plug', 18)}</a>
-        <button class="ib" data-act="menu" aria-label="Menu">${icon('menu', 18)}</button></header>
-      <main>${mode === 'demo' ? `<div class="banner">${icon('spark', 16)}<span>Mode démo : données d'exemple, rien n'est envoyé. <a href="./">Se connecter</a></span></div>` : ''}${inner}</main>
-    </div>
+    <header class="top"><div class="wrap hdin">
+      <a class="brand" href="#accueil" aria-label="Échos des siècles, console"><svg width="30" height="30"><use href="#logo"/></svg><span>échos des siècles</span><small>Console</small></a>
+      <nav class="nav">${Object.keys(SHORT).map(link).join('')}</nav>
+      <div class="tools"><span class="live" data-sync>${syncHtml()}</span>
+        <button class="srch" data-act="pal">${icon('search', 16)}<span>Rechercher</span><kbd>⌘K</kbd></button>
+        <button class="ib mob" data-act="pal" aria-label="Rechercher">${icon('search', 18)}</button>
+        <button class="ib mob" data-act="menu" aria-label="Menu">${icon('menu', 18)}</button></div>
+    </div></header>
+    <main class="wrap">${mode === 'demo' ? `<div class="banner">${icon('spark', 16)}<span><b>Démo</b> · données d'exemple, rien n'est envoyé. <a href="./">Se connecter</a></span></div>` : ''}${inner}</main>
     <nav class="tabs">${tab('accueil', 'Accueil')}${tab('encheres', 'Enchères')}<button class="fab" data-act="quick" aria-label="Actions rapides">${icon('plus')}</button>${tab('stock', 'Stock')}${tab('ventes', 'Ventes')}</nav>
   </div>`;
 }
@@ -368,11 +361,11 @@ function vAccueil() {
   ];
   const fmax = Math.max(...funnelData.map((x) => x[1]), 1);
   const prochains = k.suivis.slice(0, 4);
-  return hero(`<i class="dot"></i>${esc(fdate(new Date().toISOString(), { weekday: 'long', day: 'numeric', month: 'long' }))}`, `${salut()} ${esc(nom)},<br><span class="serif grad">tout tourne.</span>`,
+  return hero(`<i class="dot"></i>${esc(fdate(new Date().toISOString(), { weekday: 'long', day: 'numeric', month: 'long' }))}`, `${salut()} ${esc(nom)},<br><em>tout tourne.</em>`,
     `${nOk} connexions actives, ${t.length ? `${t.length} chose${t.length > 1 ? 's' : ''} à décider` : 'rien à décider pour l\'instant'}. Le moteur veille toutes les 5 minutes, tu gardes la main sur le prix et la livraison.`,
     `<button class="btn sec" data-act="pal">${icon('search', 16)} Rechercher</button><button class="btn grd" data-open="new">${icon('plus', 16)} Nouvel achat</button>`) + `
   <section class="bento">
-    <a href="#ventes" class="card glow kpi hero-k reveal"><div class="k">Chiffre d'affaires · 30 j ${delta != null ? `<span class="${delta >= 0 ? 'up' : 'down'}">${delta >= 0 ? '↑' : '↓'} ${Math.abs(delta)} %</span>` : ''}</div><div class="v">${keur(k.ca)}</div><div class="d">${k.nv} vente${k.nv > 1 ? 's' : ''}</div>${spark(s.ca, 'var(--blue)')}</a>
+    <a href="#ventes" class="card glow kpi hero-k reveal"><div class="k">Chiffre d'affaires · 30 j ${delta != null ? `<span class="${delta >= 0 ? 'up' : 'down'}">${delta >= 0 ? '↑' : '↓'} ${Math.abs(delta)} %</span>` : ''}</div><div class="v">${keur(k.ca)}</div><div class="d">${k.nv} vente${k.nv > 1 ? 's' : ''}</div>${spark(s.ca, '#c9d4ff')}</a>
     <a href="#ventes" class="card glow kpi reveal"><div class="k">Marge · 30 j <span class="dim">${k.ca ? Math.round((k.mg / k.ca) * 100) + ' %' : ''}</span></div><div class="v">${keur(k.mg)}</div><div class="d">après frais d'achat</div>${spark(s.mg, 'var(--gold)')}</a>
     <a href="#stock" class="card glow kpi reveal"><div class="k">En vitrine ${icon('box', 16)}</div><div class="v">${k.enLigne}</div><div class="d">valeur ${keur(k.valeur)}</div>${spark(items().filter((i) => i.publieLe).map((i, n) => n + 1), 'var(--green)')}</a>
     <a href="#encheres" class="card glow kpi reveal"><div class="k">Veille ${icon('radar', 16)}</div><div class="v">${k.nouveaux}<span class="dim" style="font-size:.5em;font-weight:500"> nouveaux</span></div><div class="d">${k.suivis.length} suivi${k.suivis.length > 1 ? 's' : ''}${k.suivis[0] ? ' · prochaine ' + esc(dans(k.suivis[0].date)) : ''}</div>${spark([3, 5, 4, 8, 6, 9, 7, 11, 9, k.nouveaux + 8], 'var(--violet)')}</a>
@@ -415,7 +408,7 @@ function vEncheres() {
   const L = lots();
   const cnt = (st) => L.filter((l) => l.statut === st).length;
   const tags = [...new Set(L.map((l) => l.tag).filter(Boolean))];
-  const head = hero(`${icon('radar', 14)} Interenchères · ${esc(status('interencheres').t)}`, `Les <span class="serif grad">enchères</span>`,
+  const head = hero(`${icon('radar', 14)} Interenchères · ${esc(status('interencheres').t)}`, `Les <em>enchères</em>`,
     'Live, chrono et catalogue sur l\'art de la table et la peinture russe. Indique ta revente : je calcule le marteau max avec ta règle.',
     `<button class="btn sec" data-act="ics">${icon('cal', 16)} Agenda .ics</button><button class="btn grd" data-act="veille">${icon('radar', 16)} Lancer une veille</button>`);
   const tabs = `<div class="bar">${seg('ench', [['veille', 'Veille'], ['agenda', 'Agenda', L.filter((l) => l.statut === 'suivi' && Date.parse(l.date) > Date.now()).length]])}</div>`;
@@ -460,7 +453,7 @@ function vStock() {
   const I = items().filter((i) => !q || (i.titre + ' ' + i.marque + ' ' + i.id).toLowerCase().includes(q));
   const cols = [['prix', 'Prix à fixer', 'amber'], ['pret', 'Prêtes', 'blue'], ['en_ligne', 'En ligne', 'green'], ['vendu', 'Vendues', 'gold']];
   const valeur = items().filter((i) => i.statut === 'en_ligne').reduce((a, i) => a + (i.prix || 0), 0);
-  return hero(`${icon('box', 14)} ${items().filter((i) => i.statut !== 'archive').length} pièces · ${keur(valeur)} en vitrine`, `Le <span class="serif grad">stock</span>`,
+  return hero(`${icon('box', 14)} ${items().filter((i) => i.statut !== 'archive').length} pièces · ${keur(valeur)} en vitrine`, `Le <em>stock</em>`,
     'Chaque pièce gagnée arrive ici avec ses photos. Tu choisis le prix, je publie sur le site, eBay et Leboncoin, et je retire partout à la vente.',
     `<button class="btn grd" data-open="new">${icon('plus', 16)} Nouvel achat</button>`) + `
     <div class="bar"><label class="searchf">${icon('search', 16)}<input data-q placeholder="Chercher une pièce…" value="${esc(f.q)}"></label></div>
@@ -481,8 +474,8 @@ function vVentes() {
   const k = kpis();
   const parCanal = Object.keys({ ...CANAUX, autre: 1 }).map((c) => [c, O.filter((o) => o.canal === c).reduce((a, o) => a + o.prix, 0)]).filter((x) => x[1]);
   const tot = parCanal.reduce((a, x) => a + x[1], 0) || 1;
-  const colC = { site: 'var(--gold)', ebay: 'var(--blue)', leboncoin: '#ff9549', autre: 'var(--violet)' };
-  return hero(`${icon('bag', 14)} ${ouvertes.length} commande(s) en cours`, `Les <span class="serif grad">ventes</span>`, 'Tu choisis la livraison : Cocolis à la main, Colissimo, ou retrait à Lyon ou Annecy. Je préviens l\'acheteur et je retire les annonces ailleurs.') + `
+  const colC = { site: 'var(--gold)', ebay: 'var(--blue)', leboncoin: '#d4661c', autre: 'var(--violet)' };
+  return hero(`${icon('bag', 14)} ${ouvertes.length} commande(s) en cours`, `Les <em>ventes</em>`, 'Tu choisis la livraison : Cocolis à la main, Colissimo, ou retrait à Lyon ou Annecy. Je préviens l\'acheteur et je retire les annonces ailleurs.') + `
     <section class="bento" style="margin-bottom:16px">
       <div class="card kpi"><div class="k">À expédier</div><div class="v">${O.filter((o) => ['livraison_a_choisir', 'a_preparer'].includes(o.statut)).length}</div><div class="d">livraison à choisir ou à préparer</div></div>
       <div class="card kpi"><div class="k">CA · 30 j</div><div class="v">${keur(k.ca)}</div><div class="d">${k.nv} vente(s)</div></div>
@@ -505,7 +498,7 @@ function netGraph() {
   const g = status('github');
   return `<div class="card net reveal"><svg viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">${wires}</svg>
     ${INTEG.map((n) => { const st = status(n.k); return `<a class="node ${st.c}" href="#c-${n.k}" data-scroll="c-${n.k}" style="left:${n.x}%;top:${n.y}%"><span class="ic" style="color:${n.col}">${icon(n.ic, 24)}</span><span>${esc(n.n)}</span><small>${esc(st.t)}</small></a>`; }).join('')}
-    <a class="node hub ${g.c}" href="#c-github" data-scroll="c-github" style="left:50%;top:50%"><span class="ic"><svg width="38" height="38"><use href="#logo"/></svg></span><span>Moteur Échos</span><small>${esc(g.t)}</small></a></div>`;
+    <a class="node hub ${g.c}" href="#c-github" data-scroll="c-github" style="left:50%;top:50%"><span class="ic"><svg width="40" height="40"><use href="#logo"/></svg></span><span>Moteur Échos</span><small>${esc(g.t)}</small></a></div>`;
 }
 
 const secretRow = (s) => { const ok = secretOk(s.n); return `<div class="chan"><span style="min-width:0"><span class="mono" style="color:var(--ink);text-transform:none;letter-spacing:0;font-size:12.5px">${s.n}</span><br><small class="dim">${esc(s.d)}</small></span><span style="display:flex;gap:8px;align-items:center;flex:none">${ok == null ? '' : ok ? pill('Réglé', 'green') : pill(s.req ? 'Manquant' : 'Vide', s.req ? 'red' : '')}<button class="btn sec sm" data-open="secret" data-id="${s.n}">${icon('key', 14)} ${ok ? 'Changer' : 'Définir'}</button></span></div>`; };
@@ -534,7 +527,7 @@ function vConnexions() {
   const ext = (href, t) => `<a class="btn sec sm" href="${esc(href)}" target="_blank" rel="noopener">${esc(t)} ${icon('arrow', 13)}</a>`;
   const nOk = [...INTEG.map((x) => x.k), 'github'].filter((x) => status(x).c === 'ok').length;
   const permBanner = SEC === 'noperm' ? `<div class="banner">${icon('key', 16)}<span>Pour régler les secrets d'ici, ajoute à ton jeton GitHub la permission <b>Secrets : lecture et écriture</b> (<a href="https://github.com/settings/personal-access-tokens" target="_blank" rel="noopener">réglages du jeton</a>), puis reconnecte-toi.</span></div>` : '';
-  return hero(`<i class="dot"></i>${nOk}/${INTEG.length + 1} opérationnelles`, `Tout est <span class="serif grad">connecté.</span>`,
+  return hero(`<i class="dot"></i>${nOk}/${INTEG.length + 1} opérationnelles`, `Tout est <em>connecté.</em>`,
     'Le moteur tourne seul sur GitHub, 24 h/24, toutes les 5 minutes. Coupe ou rebranche chaque service d\'un geste, et règle ses accès sans quitter l\'admin.',
     `<button class="btn sec" data-act="reload">${icon('pulse', 16)} Actualiser</button><button class="btn grd" data-act="run">${icon('bolt', 16)} Lancer un cycle</button>`) + permBanner + netGraph() + `
   <div class="grid g2 sec">
@@ -593,7 +586,7 @@ function vAuto() {
   const tg = (path, t, s) => `<label class="tog"><span class="t"><b>${t}</b><small>${s}</small></span><input type="checkbox" class="sw" data-tog="${path}" ${getPath(path) !== false && getPath(path) != null ? 'checked' : ''}></label>`;
   const groups = {};
   for (const r of v.requetes) (groups[r.tag || 'Autres'] ||= []).push(r);
-  return hero(`${icon('bolt', 14)} Règles du moteur`, `Les <span class="serif grad">automatismes</span>`, 'Ce que le moteur fait seul, et ce qu\'il te demande. Tout s\'applique au cycle suivant.') + `
+  return hero(`${icon('bolt', 14)} Règles du moteur`, `Les <em>automatismes</em>`, 'Ce que le moteur fait seul, et ce qu\'il te demande. Tout s\'applique au cycle suivant.') + `
   <div class="grid g2">
     <section class="card reveal"><div class="pad" style="padding-bottom:0"><div class="h2">Flux automatiques</div></div>
       ${tg('auto.publierApresPrix', 'Publier dès que le prix est fixé', 'Sinon je te demande d\'abord « retrait possible ? »')}
@@ -631,7 +624,7 @@ function vActivite() {
   const J = S.jobs.filter((j) => !j.done);
   const err = jobsErr();
   const lbl = { publish: 'Publier', unpublish: 'Retirer', update: 'Mettre à jour', notify: 'Prévenir' };
-  return hero(`${icon('pulse', 14)} ${S.log.length} évènements`, `L'<span class="serif grad">activité</span>`, 'Tout ce que le moteur a fait, et ce qu\'il a en file. Une tâche échoue trois fois ? Elle s\'arrête et je te préviens.') + `
+  return hero(`${icon('pulse', 14)} ${S.log.length} évènements`, `L'<em>activité</em>`, 'Tout ce que le moteur a fait, et ce qu\'il a en file. Une tâche échoue trois fois ? Elle s\'arrête et je te préviens.') + `
     <div class="bar">${seg('act', [['journal', 'Journal'], ['taches', 'Tâches', J.length], ['erreurs', 'Erreurs', err.length]])}</div>
     ${f.act === 'journal' ? `<div class="card feed">${S.log.slice(0, 120).map(evHtml).join('') || '<div class="pad dim">Rien encore.</div>'}</div>`
       : (() => { const L = f.act === 'erreurs' ? err : J; return L.length ? `<div class="card">${L.map((j) => { const it = S.items[j.itemId]; const bad = j.err || j.tries >= 3; return `<div class="ev ${bad ? 'error' : ''}"><span class="ei">${icon(bad ? 'x' : 'bolt', 15)}</span><span><b style="font-weight:550">${esc(lbl[j.type] || j.type)}${j.channel ? ' · ' + esc(CANAUX[j.channel] || j.channel) : ''}${j.kind ? ' · ' + esc(j.kind) : ''}</b><br><small class="dim">${esc(it?.titre || j.orderId || j.lotId || '')}${j.err ? ' — ' + esc(j.err) : ''} · ${j.tries || 0} essai(s)</small></span>${bad ? `<button class="btn sec sm" data-act="job.relancer" data-id="${esc(j.id)}">Relancer</button>` : `<time>${esc(depuis(j.at))}</time>`}</div>`; }).join('')}</div>` : empty('Rien en file', 'Le moteur est à jour.'); })()}`;
@@ -639,11 +632,9 @@ function vActivite() {
 
 /* ---------- Réglages ---------- */
 function vReglages() {
-  const th = document.documentElement.dataset.theme;
-  return hero(`${icon('gear', 14)} ${esc(mode === 'demo' ? 'Démo' : repo())}`, `<span class="serif grad">Réglages</span>`, '') + `
+  return hero(`${icon('gear', 14)} ${esc(mode === 'demo' ? 'Démo' : repo())}`, `<em>Réglages</em>`, '') + `
   <div class="grid g2">
     <section class="card reveal">
-      <label class="tog"><span class="t"><b>Thème clair</b><small>Sombre par défaut</small></span><input type="checkbox" class="sw" data-act="theme" ${th === 'light' ? 'checked' : ''}></label>
       <div class="tog"><span class="t"><b>Installer sur le téléphone</b><small>Safari › Partager › « Sur l'écran d'accueil » : l'admin s'ouvre comme une appli.</small></span></div>
       <div class="tog"><span class="t"><b>Raccourcis</b><small>⌘K ou / : recherche et commandes · Échap : fermer</small></span></div>
     </section>
@@ -715,7 +706,7 @@ function sheetOrder(id) {
   openSheet(`${gal(i.photos?.slice(0, 2))}${eyebrow(`${esc(o.id)} · ${esc(CANAUX[o.canal] || o.canal)}`)}<h2 class="st">${esc(i.titre)}</h2>
     <div class="acts">${pill(st[0], st[1])}</div>
     <dl class="kv"><dt>Prix</dt><dd><b>${eur(o.prix)}</b></dd><dt>Marge</dt><dd>${eur(o.prix - (i.cout || 0))}</dd><dt>Acheteur</dt><dd>${esc(o.acheteur || '—')}${o.ville ? ', ' + esc(o.ville) : ''}</dd><dt>Date</dt><dd>${esc(fdate(o.creeLe))} ${fheure(o.creeLe)}</dd>${o.suivi ? `<dt>Suivi</dt><dd>${esc(o.suivi)}</dd>` : ''}</dl>
-    <div class="block"><b>Livraison · c'est toi qui choisis</b><div class="menu">${opts.map(([k, v]) => `<button data-act="commande.livraison" data-id="${o.id}" data-livraison="${k}" style="${o.livraison === k ? 'border-color:rgba(91,140,255,.6);background:rgba(91,140,255,.12)' : ''}">${icon(ico[k] || 'truck', 18)}<span>${esc(v)}</span></button>`).join('')}</div>
+    <div class="block"><b>Livraison · c'est toi qui choisis</b><div class="menu">${opts.map(([k, v]) => `<button data-act="commande.livraison" data-id="${o.id}" data-livraison="${k}" style="${o.livraison === k ? 'background:var(--ink);color:var(--bg)' : ''}">${icon(ico[k] || 'truck', 18)}<span>${esc(v)}</span></button>`).join('')}</div>
     ${o.livraison === 'cocolis' ? `<a class="btn sec" href="https://www.cocolis.fr/" target="_blank" rel="noopener">Créer l'envoi sur Cocolis ${icon('arrow', 14)}</a>` : ''}</div>
     <form class="block" data-form="commande" data-id="${o.id}"><b>Suivi</b>
       <label class="f">Statut<select class="in" name="statut">${STATUTS_COMMANDE.map((s) => `<option value="${s}" ${s === o.statut ? 'selected' : ''}>${STAT_CMD[s][0]}</option>`).join('')}</select></label>
@@ -725,7 +716,7 @@ function sheetOrder(id) {
 }
 
 function sheetNew() {
-  openSheet(`${eyebrow('Stock')}<h2 class="h1" style="font-size:34px;margin:8px 0">Un <span class="serif grad">achat</span></h2><p class="sub">Hors veille (autre salle, brocante). Tu peux aussi écrire au bot : /achat 120 Verres de Sèvres, avec les photos.</p>
+  openSheet(`${eyebrow('Stock')}<h2 class="h1" style="font-size:34px;margin:8px 0">Un <em>achat</em></h2><p class="sub">Hors veille (autre salle, brocante). Tu peux aussi écrire au bot : /achat 120 Verres de Sèvres, avec les photos.</p>
     <form class="block" data-form="new"><label class="f">Titre<input class="in" name="titre" required placeholder="Verres à cognac de Sèvres"></label><div class="inrow"><label class="f">Prix au marteau<div class="eur"><input class="in" name="marteau" inputmode="numeric" required></div></label><label class="f">Frais %<input class="in" name="frais" inputmode="decimal" value="${S.settings.pricing.fraisDefaut}"></label></div>
     <div class="inrow"><label class="f">Marque<input class="in" name="marque"></label><label class="f">Catégorie<select class="in" name="categorie">${CATS.map((c) => `<option>${c}</option>`).join('')}</select></label></div>
     <label class="f">Description<textarea class="in" name="description"></textarea></label><p class="dim" style="font-size:13px">Photos : envoie-les au bot Telegram avec la référence de la pièce en légende.</p><button class="btn grd">Ajouter au stock</button></form>`);
@@ -742,7 +733,7 @@ function sheetSecret(name) {
 
 function sheetMenu() {
   openSheet(`${eyebrow('Navigation')}<h2 class="st">Console</h2><div class="menu" style="margin-top:12px">${Object.entries(VIEWS).map(([k, v]) => `<a href="#${k}" data-act="close-nav">${icon(v.i, 18)}<span>${v.t}</span>${badge(k)}</a>`).join('')}</div>
-  <div class="block"><button class="btn sec full" data-act="run">${icon('bolt', 16)} Lancer un cycle du moteur</button><button class="btn ghost full" data-act="theme-btn">${icon('sun', 16)} Changer de thème</button></div>`);
+  <div class="block"><button class="btn sec full" data-act="run">${icon('bolt', 16)} Lancer un cycle du moteur</button></div>`);
 }
 
 function sheetQuick() {
@@ -765,7 +756,6 @@ function palItems(q) {
     { g: 'Actions', ic: 'radar', t: 'Lancer une veille Interenchères', run: () => runEngine(true) },
     { g: 'Actions', ic: 'bolt', t: 'Lancer un cycle du moteur', run: () => runEngine(false) },
     { g: 'Actions', ic: 'cal', t: 'Exporter l\'agenda (.ics)', run: () => ics() },
-    { g: 'Actions', ic: 'sun', t: 'Changer de thème', run: () => toggleTheme() },
     { g: 'Actions', ic: 'key', t: 'Coffre des secrets', run: () => { location.hash = '#connexions'; setTimeout(() => $('#secrets')?.scrollIntoView({ behavior: 'smooth' }), 80); } },
   ];
   const ent = [
@@ -822,13 +812,6 @@ async function runEngine(veille) {
   if (mode === 'demo') return toast(veille ? 'Veille lancée · démo' : 'Cycle lancé · démo');
   try { await dispatch(veille); toast(veille ? 'Veille lancée : résultats dans 1 à 2 min' : 'Moteur lancé'); setSync('wait', 'Moteur en cours…'); setTimeout(() => loadRemote().then(render).catch(() => {}), 90e3); } catch (e) { toast(e.message, false); }
 }
-function toggleTheme(light) {
-  const r = document.documentElement;
-  r.dataset.theme = light ?? r.dataset.theme !== 'light' ? 'light' : 'dark';
-  if (light === false) r.dataset.theme = 'dark';
-  try { localStorage.setItem(THEME, r.dataset.theme); } catch {}
-  $('meta[name=theme-color]').content = r.dataset.theme === 'light' ? '#f7f7f5' : '#09090b';
-}
 function setPath(path, val) {
   const [a, b] = path.split('.');
   return { type: 'reglages', patch: { [a]: { [b]: val } } };
@@ -859,7 +842,6 @@ document.addEventListener('click', async (e) => {
     case 'pal': return openPal();
     case 'menu': return sheetMenu();
     case 'quick': return sheetQuick();
-    case 'theme-btn': toggleTheme(); return render();
     case 'logout': e.preventDefault(); cfg = { repo: cfg.repo }; saveCfg(); S = null; mode = null; closeSheet(); return showLogin();
     case 'reload': if (mode === 'live') { try { await loadRemote(); render(); toast('À jour'); } catch (err) { setSync('err', err.message); toast(err.message, false); } } else toast('Démo à jour'); return;
     case 'ics': closeSheet(); return ics();
@@ -897,7 +879,6 @@ document.addEventListener('change', (e) => {
   const t = e.target;
   if (t.dataset.revente) { const r = num(t.value); act({ type: 'lot.revente', id: t.dataset.revente, revente: r }, r ? 'Marteau max recalculé' : 'Revente effacée').then(() => { if (document.body.classList.contains('open')) sheetLot(t.dataset.revente); }); }
   if (t.dataset.act === 'item.retrait') act({ type: 'item.retrait', id: t.dataset.id, retrait: t.checked }, t.checked ? 'Retrait possible' : 'Envoi uniquement');
-  if (t.dataset.act === 'theme') { toggleTheme(t.checked); }
   if (t.dataset.tog) {
     const label = { 'integrations.veille': 'Veille', 'integrations.telegram': 'Telegram', 'integrations.ia': 'Rédaction IA', 'canaux.site': 'Site', 'canaux.ebay': 'eBay', 'canaux.leboncoin': 'Leboncoin' }[t.dataset.tog];
     act(setPath(t.dataset.tog, t.checked), label ? `${label} ${t.checked ? 'activé' : 'en pause'}` : t.checked ? 'Activé' : 'Désactivé');
@@ -956,9 +937,9 @@ setInterval(() => { for (const el of document.querySelectorAll('[data-cd]')) { c
 /* ================= connexion ================= */
 function showLogin(err = '') {
   $('#root').innerHTML = `<div class="login"><div class="box reveal">
-    <div class="orb"><svg width="38" height="38"><use href="#logo"/></svg></div>
-    <div class="eyebrow" style="margin-top:22px"><i class="dot"></i>Échos des siècles</div>
-    <h1 class="h1">La <span class="serif grad">console.</span></h1>
+    <div class="orb"><svg width="30" height="30"><use href="#logo"/></svg>échos des siècles</div>
+    <div class="eyebrow" style="margin:34px 0 0"><i class="dot"></i>Accès réservé</div>
+    <h1 class="h1">La <em>console.</em></h1>
     <p class="sub">Veille Interenchères, prix, annonces sur le site, eBay et Leboncoin, ventes et livraisons. Tout au même endroit.</p>
     <form data-form="login">
       <label class="f">Phrase secrète<input class="in" name="pass" type="password" autocomplete="current-password" required minlength="12"></label>
