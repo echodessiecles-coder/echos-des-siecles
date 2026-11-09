@@ -1,5 +1,6 @@
-// Veille Interenchères : interroge la recherche publique du site
-// (celle qu'utilise interencheres.com dans le navigateur, sans connexion),
+// Veille Interenchères. La recherche publique du site (sans connexion) bloque
+// les serveurs (anti-robot) : en production, la veille passe par les alertes
+// e-mail (voir alertes.mjs) ; searchLots ne sert que là où elle répond.
 // garde les lots « art de la table » et « tableaux russes », calcule le
 // marteau maximum et repère les ventes à venir.
 
@@ -7,14 +8,15 @@ import { fraisLot, marteauMax } from './pricing.mjs';
 import { log, notify } from './model.mjs';
 
 const SEARCH = process.env.INTERENCHERES_SEARCH_URL || 'https://search.interencheres.com/v1/search/ie4_items';
-const UA = 'Mozilla/5.0 (Macintosh; Intel Mac OS X 14_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130 Safari/537.36';
+// Client honnête : on ne se fait pas passer pour un navigateur.
+const UA = 'EchosDesSiecles-veille/1.0';
 
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 const https = (u) => (u ? (u.startsWith('//') ? 'https:' + u : u) : null);
 
 export async function searchLots(query) {
   const url = SEARCH + '?query=' + encodeURIComponent(query);
-  const res = await fetch(url, { headers: { accept: 'application/json', 'user-agent': UA, origin: 'https://www.interencheres.com', referer: 'https://www.interencheres.com/' } });
+  const res = await fetch(url, { headers: { accept: 'application/json', 'user-agent': UA } });
   if (!res.ok) throw new Error(`Interenchères ${res.status} pour « ${query} »`);
   const data = await res.json();
   return Array.isArray(data) ? data : data?.items || data?.hits || [];
@@ -66,7 +68,7 @@ export function normalizeLot(it, requete) {
 
 const norm = (s) => String(s || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
 
-function pertinent(lot, settings) {
+export function pertinent(lot, settings) {
   const v = settings.veille;
   const txt = norm(lot.titre + ' ' + lot.description);
   // Mots exclus en mot entier (« vin » exclurait sinon les verres à vin).
@@ -85,8 +87,35 @@ export function reventeEstimee(state, lot) {
   return prix.length ? prix[Math.floor(prix.length / 2)] : null;
 }
 
+/**
+ * Fait entrer un lot (déjà normalisé) dans l'état : filtre, met à jour un lot connu
+ * ou crée un nouveau lot avec son marteau maximum. Partagé par la veille par API
+ * et par la veille par alertes e-mail. Renvoie 'nouveau', 'invendu', 'maj' ou null.
+ */
+export function ingestLot(state, lot, { nowMs = Date.now(), limite = Infinity } = {}) {
+  const { pricing } = state.settings;
+  const t = Date.parse(lot.date || '');
+  if (Number.isFinite(t) && t > limite) return null;
+  if (!pertinent(lot, state.settings)) return null;
+  const old = state.lots[lot.id];
+  if (old) {
+    // Mise à jour des infos qui bougent (date, estimations), on garde ses choix.
+    // Un champ inconnu dans la nouvelle source (ex. alerte e-mail) ne remplace pas l'ancien.
+    const neuf = Object.fromEntries(Object.entries(lot).filter(([, v]) => v != null && v !== '' && !(Array.isArray(v) && !v.length)));
+    Object.assign(old, { ...neuf, statut: old.statut, revente: old.revente, marteauMax: old.marteauMax, itemId: old.itemId, requete: old.requete, tag: old.tag, vuLe: old.vuLe, rappels: old.rappels, demandeResultat: old.demandeResultat });
+    return 'maj';
+  }
+  const passe = Number.isFinite(t) && t < nowMs - 12 * 3600e3;
+  lot.statut = passe ? 'invendu' : 'nouveau';
+  lot.vuLe = new Date(nowMs).toISOString();
+  lot.revente = reventeEstimee(state, lot);
+  lot.marteauMax = marteauMax(lot.revente, fraisLot(lot, pricing), pricing);
+  state.lots[lot.id] = lot;
+  return lot.statut;
+}
+
 export async function runVeille(state, { maxNotifs = 12 } = {}) {
-  const { veille, pricing } = state.settings;
+  const { veille } = state.settings;
   const nowMs = Date.now();
   const limite = nowMs + veille.joursMax * 86400e3;
   let nouveaux = 0, vus = 0, erreurs = 0;
@@ -95,28 +124,16 @@ export async function runVeille(state, { maxNotifs = 12 } = {}) {
     try { res = await searchLots(r.q); } catch (e) { erreurs++; log(state, e.message, 'warn'); continue; }
     for (const raw of res) {
       const lot = normalizeLot(raw, r);
-      const t = Date.parse(lot.date || '');
-      if (Number.isFinite(t) && t > limite) continue;
-      if (!pertinent(lot, state.settings)) continue;
+      const k = ingestLot(state, lot, { nowMs, limite });
+      if (!k) continue;
       vus++;
-      const old = state.lots[lot.id];
-      if (old) {
-        // Mise à jour des infos qui bougent (date, estimations), on garde ses choix.
-        Object.assign(old, { ...lot, statut: old.statut, revente: old.revente, marteauMax: old.marteauMax, itemId: old.itemId, requete: old.requete, tag: old.tag, vuLe: old.vuLe, rappels: old.rappels, demandeResultat: old.demandeResultat });
-        continue;
-      }
-      const passe = Number.isFinite(t) && t < nowMs - 12 * 3600e3;
-      lot.statut = passe ? 'invendu' : 'nouveau';
-      lot.vuLe = new Date().toISOString();
-      lot.revente = reventeEstimee(state, lot);
-      lot.marteauMax = marteauMax(lot.revente, fraisLot(lot, pricing), pricing);
-      state.lots[lot.id] = lot;
+      if (k === 'maj') continue;
       nouveaux++;
-      if (veille.alerteNouveaux && nouveaux <= maxNotifs) notify(state, passe ? 'invendu' : 'nouveau_lot', { lotId: lot.id });
+      if (veille.alerteNouveaux && nouveaux <= maxNotifs) notify(state, k === 'invendu' ? 'invendu' : 'nouveau_lot', { lotId: lot.id });
     }
     await sleep(+(process.env.VEILLE_PAUSE_MS ?? 800)); // poli avec leur serveur
   }
-  state.status.services.interencheres = { ok: erreurs === 0, le: new Date().toISOString(), vus, nouveaux, erreurs };
+  state.status.services.interencheres = { ok: erreurs === 0, le: new Date().toISOString(), vus, nouveaux, erreurs, source: 'api' };
   if (nouveaux > maxNotifs) notify(state, 'resume_veille', { lotId: 'resume', count: nouveaux });
   log(state, `Veille : ${vus} lots pertinents, ${nouveaux} nouveaux${erreurs ? `, ${erreurs} erreurs` : ''}`);
   return { vus, nouveaux, erreurs };

@@ -17,6 +17,7 @@ process.env.SITE_ROOT = root;
 process.env.ECHOS_DATA_KEY = 'phrase-de-test-assez-longue';
 process.env.TELEGRAM_BOT_TOKEN = 'TEST';
 process.env.VEILLE_PAUSE_MS = '0';
+process.env.VEILLE_API = '1'; // la recherche par API est simulée ici
 delete process.env.ANTHROPIC_API_KEY;
 delete process.env.EBAY_CLIENT_ID;
 

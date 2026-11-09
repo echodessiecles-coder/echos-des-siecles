@@ -3,7 +3,9 @@
   "private": true,
   "type": "module",
   "description": "Moteur d'Échos des siècles : veille Interenchères, bot Telegram, publication site / eBay / Leboncoin",
-  "engines": { "node": ">=20" },
+  "engines": {
+    "node": ">=20"
+  },
   "scripts": {
     "cycle": "node src/run.mjs",
     "veille": "node src/run.mjs --veille",
@@ -11,6 +13,8 @@
     "test": "node --test test/*.test.mjs"
   },
   "dependencies": {
-    "@anthropic-ai/sdk": "^0.70.0"
+    "@anthropic-ai/sdk": "^0.70.0",
+    "imapflow": "^2.11.0",
+    "mailparser": "^3.14.2"
   }
 }

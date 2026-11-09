@@ -3,36 +3,25 @@
 // d'un dépôt public sont publics : on n'affiche que des états et des compteurs,
 // jamais de secret ni de donnée privée.
 
-import { searchLots, normalizeLot } from './interencheres.mjs';
-import { emptyState } from './model.mjs';
+import { imapActif, imapHost } from './alertes.mjs';
 
 const out = [];
 const ok = (k, v) => out.push(`✅ ${k} : ${v}`);
 const ko = (k, v) => out.push(`❌ ${k} : ${v}`);
 const info = (k, v) => out.push(`ℹ️  ${k} : ${v}`);
 
-// Interenchères : quelques recherches réelles.
-const st = emptyState();
-const reqs = st.settings.veille.requetes.filter((r) => ['baccarat', 'école russe', 'christofle'].includes(r.q));
-for (const r of reqs) {
+// Veille : la boîte des alertes Interenchères répond-elle ?
+if (imapActif()) {
   try {
-    const t0 = Date.now();
-    const res = await searchLots(r.q);
-    const lots = res.map((x) => normalizeLot(x, r));
-    const futurs = lots.filter((l) => Date.parse(l.date) > Date.now()).length;
-    const kinds = lots.reduce((a, l) => ((a[l.kind] = (a[l.kind] || 0) + 1), a), {});
-    const avecPhoto = lots.filter((l) => l.photos.length).length;
-    ok(`Interenchères « ${r.q} »`, `${lots.length} lots (${futurs} à venir, ${avecPhoto} avec photos, ${Object.entries(kinds).map(([k, n]) => k + ' ' + n).join(', ')}) en ${Date.now() - t0} ms`);
-    if (r.q === 'baccarat' && res[0]) {
-      info('Champs d\'un lot', Object.keys(res[0]).sort().join(', '));
-      info('Champs de la vente', Object.keys(res[0].sale || {}).sort().join(', '));
-      const urlish = Object.entries({ ...res[0], ...Object.fromEntries(Object.entries(res[0].sale || {}).map(([k, v]) => ['sale.' + k, v])) })
-        .filter(([k, v]) => /url|slug|link|path/i.test(k) && typeof v === 'string').map(([k, v]) => `${k}=${v}`);
-      info('Liens possibles', urlish.join(' | ') || 'aucun');
-    }
-  } catch (e) { ko(`Interenchères « ${r.q} »`, e.message); }
-  await new Promise((r) => setTimeout(r, 800));
-}
+    const { ImapFlow } = await import('imapflow');
+    const c = new ImapFlow({ host: imapHost(), port: 993, secure: true, auth: { user: process.env.VEILLE_IMAP_USER, pass: process.env.VEILLE_IMAP_PASS }, logger: false });
+    await c.connect();
+    const box = await c.mailboxOpen(process.env.VEILLE_IMAP_FOLDER || 'INBOX', { readOnly: true });
+    const n = (await c.search({ from: process.env.VEILLE_EXPEDITEUR || 'interencheres', since: new Date(Date.now() - 30 * 86400e3) }, { uid: true })) || [];
+    await c.logout();
+    ok('Boîte des alertes', `connexion réussie, ${box.exists} e-mails, ${n.length} alertes Interenchères sur 30 jours`);
+  } catch (e) { ko('Boîte des alertes', 'connexion refusée (adresse, mot de passe d\'application ou IMAP désactivé)'); }
+} else info('Boîte des alertes', 'secrets VEILLE_IMAP_USER et VEILLE_IMAP_PASS absents');
 
 // Telegram : le jeton est-il valide ?
 if (process.env.TELEGRAM_BOT_TOKEN) {
@@ -45,12 +34,6 @@ if (process.env.TELEGRAM_BOT_TOKEN) {
 info('Données chiffrées', process.env.ECHOS_DATA_KEY ? 'ECHOS_DATA_KEY présent' : 'ECHOS_DATA_KEY absent : le moteur ne démarre pas');
 info('Rédaction IA', process.env.ANTHROPIC_API_KEY ? 'clé présente' : 'clé absente (facultatif)');
 info('eBay', process.env.EBAY_REFRESH_TOKEN ? 'identifiants présents' : 'identifiants absents (facultatif)');
-
-// Leboncoin depuis un serveur : bloqué ou pas ?
-try {
-  const r = await fetch('https://www.leboncoin.fr/', { headers: { 'user-agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 14_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130 Safari/537.36' } });
-  info('Leboncoin depuis le serveur', `HTTP ${r.status}${r.status === 403 ? ' (anti-robot : la publication doit passer par le Mac)' : ''}`);
-} catch { info('Leboncoin depuis le serveur', 'injoignable'); }
 
 console.log(out.join('\n'));
 if (process.env.GITHUB_STEP_SUMMARY) {
