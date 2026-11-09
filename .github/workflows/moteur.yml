@@ -11,6 +11,10 @@ on:
         description: 'Forcer la veille Interenchères'
         type: boolean
         default: false
+      diagnostic:
+        description: 'Diagnostic des connexions (sans rien modifier)'
+        type: boolean
+        default: false
 
 concurrency:
   group: moteur
@@ -34,7 +38,17 @@ jobs:
           cache-dependency-path: engine/package-lock.json
       - run: npm ci --omit=dev
         working-directory: engine
+      - name: Diagnostic
+        if: ${{ inputs.diagnostic }}
+        working-directory: engine
+        run: node src/diagnostic.mjs
+        env:
+          ECHOS_DATA_KEY: ${{ secrets.ECHOS_DATA_KEY }}
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          EBAY_REFRESH_TOKEN: ${{ secrets.EBAY_REFRESH_TOKEN }}
       - name: Cycle
+        if: ${{ !inputs.diagnostic }}
         working-directory: engine
         # Les journaux d'un dépôt public sont publics : le moteur n'affiche que des compteurs.
         run: node src/run.mjs ${{ inputs.veille && '--veille' || '' }}
@@ -53,6 +67,7 @@ jobs:
           SITE_URL: https://echosdessiecles.fr
           ADMIN_URL: https://echosdessiecles.fr/admin/
       - name: Enregistrer
+        if: ${{ !inputs.diagnostic }}
         run: |
           git config user.name "echos-moteur"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
